@@ -478,7 +478,7 @@ Closes #이슈번호
 
 ## 기여자
 
-| <img src="https://github.com/yaeryung93.png" width="100" alt="김예령 프로필"> | <img src="https://github.com/ksm524923.png" width="100" alt="고성민 프로필"> | <img src="https://github.com/chlgeun112.png" width="100" alt="최강은 프로필"> |
+| <img src="https://github.com/yazxyng.png" width="100" alt="김예령 프로필"> | <img src="https://github.com/ksm524923.png" width="100" alt="고성민 프로필"> | <img src="https://github.com/chlgeun112.png" width="100" alt="최강은 프로필"> |
 | :---: | :---: | :---: |
-| **[김예령](https://github.com/yaeryung93)** | **[고성민](https://github.com/ksm524923)** | **[최강은](https://github.com/chlgeun112)** |
+| **[김예령](https://github.com/yazxyng)** | **[고성민](https://github.com/ksm524923)** | **[최강은](https://github.com/chlgeun112)** |
 | 백엔드 개발 | 프론트엔드 개발 | UI/UX 디자인<br>기획 |
