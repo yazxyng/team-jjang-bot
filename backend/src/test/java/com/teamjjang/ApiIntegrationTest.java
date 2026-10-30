@@ -405,4 +405,64 @@ class ApiIntegrationTest {
         assertThat(response.headers().firstValue("Access-Control-Allow-Origin")).contains("http://localhost:5173");
         assertThat(response.headers().firstValue("Access-Control-Allow-Methods").orElse("")).contains("DELETE");
     }
+
+    @Test void updatesMemberWithoutChangingAssignedTasks() throws Exception {
+        long projectId=project();
+        long memberId=memberFor(projectId);
+        String base="/api/projects/"+projectId;
+        JsonNode task=create(base+"/tasks", taskBody(memberId, 1, 2, 3));
+        var response=request("PATCH", base+"/members/"+memberId,
+                "{\"name\":\"  수정한 팀원  \",\"role\":\"  테스트  \"}");
+        assertThat(response.statusCode()).as(response.body()).isEqualTo(200);
+        JsonNode updated=json.readTree(response.body());
+        assertThat(updated.get("id").asLong()).isEqualTo(memberId);
+        assertThat(updated.get("projectId").asLong()).isEqualTo(projectId);
+        assertThat(updated.get("name").asText()).isEqualTo("수정한 팀원");
+        assertThat(updated.get("role").asText()).isEqualTo("테스트");
+        assertThat(json.readTree(request("GET", base+"/members", null).body()).get(0)).isEqualTo(updated);
+        assertThat(storedTask(projectId, task.get("id").asLong())).isEqualTo(task);
+    }
+
+    @Test void rejectsInvalidMemberUpdatesWithoutPartialChanges() throws Exception {
+        long projectId=project();
+        long memberId=memberFor(projectId);
+        String base="/api/projects/"+projectId+"/members";
+        JsonNode before=json.readTree(request("GET", base, null).body());
+        for (String field : new String[] {"name", "role"}) {
+            for (Object value : new Object[] {null, "", "   ", "가".repeat(51)}) {
+                java.util.Map<String, Object> body=new java.util.HashMap<>();
+                body.put("name", "변경 이름");
+                body.put("role", "변경 역할");
+                body.put(field, value);
+                assertThat(request("PATCH", base+"/"+memberId, json.writeValueAsString(body)).statusCode()).isEqualTo(400);
+                assertThat(json.readTree(request("GET", base, null).body())).isEqualTo(before);
+            }
+            java.util.Map<String, String> missing=new java.util.HashMap<>();
+            missing.put("name", "변경 이름");
+            missing.put("role", "변경 역할");
+            missing.remove(field);
+            assertThat(request("PATCH", base+"/"+memberId, json.writeValueAsString(missing)).statusCode()).isEqualTo(400);
+            assertThat(json.readTree(request("GET", base, null).body())).isEqualTo(before);
+        }
+        String body=json.writeValueAsString(java.util.Map.of("name", "가".repeat(50), "role", "나".repeat(50)));
+        assertThat(request("PATCH", base+"/"+memberId, body).statusCode()).isEqualTo(200);
+        JsonNode stored=json.readTree(request("GET", base, null).body()).get(0);
+        assertThat(stored.get("name").asText()).isEqualTo("가".repeat(50));
+        assertThat(stored.get("role").asText()).isEqualTo("나".repeat(50));
+    }
+
+    @Test void rejectsMissingAndOtherProjectMembersOnUpdate() throws Exception {
+        long owner=project();
+        long memberId=memberFor(owner);
+        String ownerPath="/api/projects/"+owner+"/members";
+        JsonNode before=json.readTree(request("GET", ownerPath, null).body());
+        for (String path : new String[] {
+                "/api/projects/"+project()+"/members/"+memberId,
+                ownerPath+"/"+Long.MAX_VALUE,
+                "/api/projects/"+Long.MAX_VALUE+"/members/"+memberId}) {
+            var response=request("PATCH", path, "{\"name\":\"변경\",\"role\":\"테스트\"}");
+            assertThat(response.statusCode()).as(response.body()).isEqualTo(404);
+            assertThat(json.readTree(request("GET", ownerPath, null).body())).isEqualTo(before);
+        }
+    }
 }

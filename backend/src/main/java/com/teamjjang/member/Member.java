@@ -1,7 +1,6 @@
 package com.teamjjang.member;
 
 import com.teamjjang.project.Project;
-import com.teamjjang.task.TaskDtos;
 import jakarta.persistence.*;
 
 /** A participant in one project; not an authentication account. */
@@ -20,6 +19,10 @@ public class Member {
     protected Member() {}
     public Member(Project project, String name, String role) {
         this.project = project; this.name = name; this.role = role;
+    }
+    public void updateInfo(String name, String role) {
+        this.name=name;
+        this.role=role;
     }
     public Long getId() { return id; }
     public Long getProjectId() { return project.getId(); }
