@@ -16,4 +16,9 @@ public class MemberController {
     public MemberDtos.View create(@PathVariable Long projectId, @Valid @RequestBody MemberDtos.Create input) {
         return service.create(projectId, input);
     }
+
+    @PatchMapping("/{memberId}")
+    public MemberDtos.View update(@PathVariable Long projectId, @PathVariable Long memberId, @Valid @RequestBody MemberDtos.Update input) {
+        return service.update(projectId, memberId, input);
+    }
 }
